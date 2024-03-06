@@ -132,10 +132,14 @@
                         updateUserList();
                     },
                     error: function (xhr, status, error) {
-                        console.error('Erro ao cadastrar usuário:');
-                        console.error('Status:', status);
-                        console.error('Error:', error);
-                        console.error('Response Text:', xhr.responseText);
+                        if (xhr.status === 409) {
+                            alert(xhr.responseText);
+                        } else {
+                            console.error('Erro ao cadastrar usuário:');
+                            console.error('Status:', status);
+                            console.error('Error:', error);
+                            console.error('Response Text:', xhr.responseText);
+                        }
                     }
                 });
             };
