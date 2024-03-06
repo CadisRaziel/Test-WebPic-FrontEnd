@@ -162,6 +162,15 @@
                 updateUserList();
             });
 
+            function formatCPF(cpf) {
+                return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+            }
+
+            function formatRG(rg) {
+                return rg.replace(/(\d{2})(\d{3})(\d{3})(\d{1})/, "$1.$2.$3-$4");
+            }
+
+
 
             function updateUserList() {
                 $('#loader').show();
@@ -171,10 +180,11 @@
                     success: function (response) {
                         var userListHtml = '<h3>Lista de Usuários</h3><ul>';
                         response.forEach(function (user) {
-                            userListHtml += '<li>' + user.name + ' ' + user.lastName + ' - CPF: ' + user.cpf + ' - RG: ' + user.rg + '<span class="delete-user" data-id="' + user.id + '" style="margin-left: 10px; margin-top: 10px;"></span></li>';
+                            userListHtml += '<li>' + user.name + ' ' + user.lastName + ' - CPF: ' + formatCPF(user.cpf) + ' - RG: ' + formatRG(user.rg) + '<span class="delete-user" data-id="' + user.id + '" style="margin-left: 10px; margin-top: 10px;"><i class="fas fa-trash-alt"></i></span></li>';
                         });
                         userListHtml += '</ul>';
                         $('#userList').html(userListHtml);
+                        $('.delete-user').click(deleteUser);
                     },
                     error: function (xhr, status, error) {
                         console.error('Erro ao obter lista de usuários:');
@@ -187,8 +197,29 @@
                     }
                 });
             }
+
+            function deleteUser() {
+                var userId = $(this).data('id');
+                if (confirm("Tem certeza que deseja excluir este usuário?")) {
+                    $.ajax({
+                        url: 'https://localhost:7273/User/' + userId,
+                        method: 'DELETE',
+                        success: function (response) {
+                            console.log('Usuário excluído com sucesso:', userId);
+                            updateUserList();
+                        },
+                        error: function (xhr, status, error) {
+                            console.error('Erro ao excluir usuário:', userId);
+                            console.error('Status:', status);
+                            console.error('Error:', error);
+                            console.error('Response Text:', xhr.responseText);
+                        }
+                    });
+                }
+            }
         }
         ko.applyBindings(new UserViewModel());
     </script>
 </body>
+
 </html>
