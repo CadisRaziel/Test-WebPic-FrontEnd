@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Usuário</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        .error-message {
+            color: red;
+        }
+
+        .error {
+            border: 1px solid red;
+        }
+
+        #loader {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>    
+    <div class="container mt-5">
+        <h2>Cadastro de Usuário</h2>
+        <form id="userForm">
+            <div class="form-group">
+                <label for="name">Nome:</label>
+                <input type="text" class="form-control" id="name" placeholder="Digite seu nome"
+                    data-bind="value: name, event: { blur: validateName }">
+                <small class="error-message" data-bind="visible: nameError">O nome deve ter no mínimo 3
+                    caracteres.</small>
+            </div>
+            <div class="form-group">
+                <label for="lastName">Sobrenome:</label>
+                <input type="text" class="form-control" id="lastName" placeholder="Digite seu sobrenome"
+                    data-bind="value: lastName, event: { blur: validateLastName }">
+                <small class="error-message" data-bind="visible: lastNameError">O sobrenome deve ter no mínimo 3
+                    caracteres.</small>
+            </div>
+            <div class="form-group">
+                <label for="maritalStatus">Estado Civil:</label>
+                <select class="form-control" id="maritalStatus" data-bind="value: maritalStatus">
+                    <option value="Solteiro">Solteiro</option>
+                    <option value="Casado">Casado</option>
+                    <option value="Divorciado">Divorciado</option>
+                    <option value="Viúvo">Viúvo</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="birthday">Data de Aniversário:</label>
+                <input type="date" class="form-control" id="birthday"
+                    data-bind="value: birthday, event: { blur: validateBirthday }">
+                <small class="error-message" data-bind="visible: birthdayError">O ano de nascimento não pode ser maior
+                    que o ano atual.</small>
+            </div>
+            <div class="form-group">
+                <label for="cpf">CPF:</label>
+                <input type="text" class="form-control" id="cpf" placeholder="Digite seu CPF" data-bind="value: cpf">
+            </div>
+            <div class="form-group">
+                <label for="rg">RG:</label>
+                <input type="text" class="form-control" id="rg" placeholder="Digite seu RG" data-bind="value: rg">
+            </div>
+            <button type="button" class="btn btn-primary" data-bind="click: submitUser">Cadastrar</button>
+        </form>
+                 
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/knockout@3.5.1/build/output/knockout-latest.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+    <script>
+        function UserViewModel() {
+            var self = this;
+            self.name = ko.observable("");
+            self.lastName = ko.observable("");
+            self.maritalStatus = ko.observable(1);
+            self.birthday = ko.observable("");
+            self.cpf = ko.observable("");
+            self.rg = ko.observable("");
+            self.nameError = ko.observable(false);
+            self.lastNameError = ko.observable(false);
+            self.birthdayError = ko.observable(false);
+
+            self.mapMaritalStatus = function (status) {
+                switch (status) {
+                    case "Solteiro":
+                        return 1;
+                    case "Casado":
+                        return 2;
+                    case "Divorciado":
+                        return 3;
+                    case "Viúvo":
+                        return 4;
+                    default:
+                        return null;
+                }
+            };
+
+            self.submitUser = function () {
+                var userData = {
+                    name: self.name(),
+                    lastName: self.lastName(),
+                    maritalStatus: self.mapMaritalStatus(self.maritalStatus()),
+                    birthday: new Date(self.birthday()).toISOString(),
+                    cpf: self.cpf().replace(/[^\d]/g, ''),
+                    rg: self.rg().replace(/[^\dA-Z]/g, '')
+                };
+
+                $.ajax({
+                    url: 'https://localhost:7273/User',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(userData),
+                    success: function (response) {
+                        alert('Usuário cadastrado com sucesso!');
+                        console.log('Usuário cadastrado com sucesso:', response);
+                        self.name("");
+                        self.lastName("");
+                        self.maritalStatus("");
+                        self.birthday("");
+                        self.cpf("");
+                        self.rg("");                        
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Erro ao cadastrar usuário:');
+                        console.error('Status:', status);
+                        console.error('Error:', error);
+                        console.error('Response Text:', xhr.responseText);
+                    }
+                });
+            };
+
+            self.validateName = function () {
+                self.nameError(self.name().length < 3 || self.name().trim() === "");
+            };
+
+            self.validateLastName = function () {
+                self.lastNameError(self.lastName().length < 3 || self.lastName().trim() === "");
+            };
+
+            self.validateBirthday = function () {
+                var inputDate = new Date(self.birthday());
+                var currentDate = new Date();
+                self.birthdayError(inputDate.getFullYear() > currentDate.getFullYear());
+            };
+
+            $(document).ready(function () {
+                $('#cpf').mask('000.000.000-00', {
+                    reverse: true
+                });
+                $('#rg').mask('00.000.000-A');               
+            });           
+        }
+        ko.applyBindings(new UserViewModel());
+    </script>
+</body>
+</html>
