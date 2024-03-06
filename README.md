@@ -16,6 +16,7 @@ Criar um pequeno sistema aonde eu consigo criar usuário - listar usuário - del
   http-server -p 8090
 ```
 #### Ferramentas utilizadas
+ - NPM
  - Html
  - Bootstrap
  - knockout js
